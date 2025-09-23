@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JDialog.java to edit this template
  */
-package com.putrartx.gudangbarang2025;
+package com.putrartx.gudangbarang2025.Dialog;
 
+import com.putrartx.gudangbarang2025.DBContext;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
@@ -11,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.sql.*;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 /**
  *
  * @author Administrator
@@ -24,6 +27,8 @@ DefaultTableModel model;
     /**
      * Creates new form DataBarangDialog
      */
+public String OperationCode;
+
     public DataBarangDialog(JFrame parent) {
         super(parent, "Data Barang",true);
         initComponents();
@@ -35,104 +40,170 @@ DefaultTableModel model;
         initComboModels();
         disableInputs();
         clearInputs();
+        btn_delete.setEnabled(false);
+        btn_cancel.setEnabled(false);
+        btn_update.setEnabled(false);
+        
         loadBarangToTable(frame);
-        new Thread(() -> {
-    while (true) {
-        try {
-            // Fetch data from DB
-            DefaultTableModel model = fetchBarangFromDB();
+//        new Thread(() -> {
+//    while (true) {
+//        try {
+//            // Fetch data from DB
+//            DefaultTableModel model = fetchBarangFromDB();
+//
+//            // Update JTable safely on EDT
+//            SwingUtilities.invokeLater(() -> {
+//                frame.setModel(model);
+//            });
+//
+//            // Refresh every 3 seconds
+//            Thread.sleep(3000);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+//}).start();
+frame.addMouseListener(new java.awt.event.MouseAdapter() {
+    @Override
+    public void mouseClicked(java.awt.event.MouseEvent evt) {
+        if(btn_input.getText() == "SAVE"){ // Block Action when inputting
+            btn_delete.setEnabled(false);
+            btn_search.setEnabled(false);
+            btn_update.setEnabled(false);
+            return;
+        }
+        btn_cancel.setEnabled(true);
+        btn_input.setEnabled(false);
+        btn_update.setEnabled(true);
+        btn_search.setEnabled(true);
+        btn_delete.setEnabled(true);
+        btn_search.setEnabled(false);
+        int row = frame.rowAtPoint(evt.getPoint());
+        int col = frame.columnAtPoint(evt.getPoint());
+        if (row >= 0 && col >= 0) {
+            // Get value directly from model
+            Object value = frame.getModel().getValueAt(row, col);
+            System.out.println("Clicked value: " + value);
 
-            // Update JTable safely on EDT
-            SwingUtilities.invokeLater(() -> {
-                frame.setModel(model);
-            });
-
-            // Refresh every 3 seconds
-            Thread.sleep(3000);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            // If you want the whole row data
+            int columnCount = frame.getColumnCount();
+//            for (int i = 0; i < columnCount; i++) {
+//                Object cell = frame.getModel().getValueAt(row, i);
+//                System.out.println("Column " + i + ": " + cell);
+//                if(i == 2)
+//            }
+                Object code = frame.getModel().getValueAt(row, 2);
+                OperationCode = code.toString();
+                
+                
+                
+                // Enable Input
+                enableInputs();
+                // Fill Input
+                tbx_code.setEnabled(false);
+                tbx_date.setText((frame.getModel().getValueAt(row, 1)).toString());
+                tbx_code.setText((frame.getModel().getValueAt(row, 2)).toString());
+                tbx_name.setText((frame.getModel().getValueAt(row, 3)).toString());
+                cbx_type.setSelectedItem((frame.getModel().getValueAt(row, 4)).toString());
+                String jenis = (String) cbx_type.getSelectedItem();
+        if (jenis != null) {
+            String[] tipeList = jenisMap.get(jenis);
+            cbx_typejenis1.setModel(new DefaultComboBoxModel<>(tipeList));
+            cbx_typejenis1.setSelectedIndex(-1);
+            cbx_merk.setModel(new DefaultComboBoxModel<>()); // clear merk
+        }
+                cbx_typejenis1.setSelectedItem((frame.getModel().getValueAt(row, 5)).toString());
+                cbx_merk.setSelectedItem((frame.getModel().getValueAt(row, 6)).toString());
+                
+                tbx_total.setText((frame.getModel().getValueAt(row, 7)).toString());
+                cbx_pieces.setSelectedItem((frame.getModel().getValueAt(row, 8)).toString());
+                tbx_priceperitem.setText((frame.getModel().getValueAt(row, 9)).toString());
         }
     }
-}).start();
+});
 
     }
     public static DefaultTableModel fetchBarangFromDB() {
-        String[] columns = {
-            "Id", "Tanggal Input", "Kode Barang", "Nama Barang",
-            "Jenis", "Tipe Jenis", "Merk",
-            "Jumlah Barang", "Satuan", "Harga Satuan"
-        };
+    String[] columns = {
+        "Id", "Tanggal Input", "Kode Barang", "Nama Barang",
+        "Jenis", "Tipe Jenis", "Merk",
+        "Jumlah Barang", "Satuan", "Harga Satuan"
+    };
 
-        DefaultTableModel model = new DefaultTableModel(columns, 0);
+    DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-        String sql = "SELECT id, tanggal_input, kode_barang, nama_barang, jenis, tipe_jenis, " +
-                     "merk, jumlah_barang, satuan, harga_satuan FROM barang";
+    String sql = "SELECT tanggal_input, kode_barang, nama_barang, jenis, tipe_jenis, " +
+                 "merk, jumlah_barang, satuan, harga_satuan FROM barang";
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
 
-            while (rs.next()) {
-                Object[] row = {
-                    rs.getInt("id"),
-                    rs.getDate("tanggal_input"),
-                    rs.getString("kode_barang"),
-                    rs.getString("nama_barang"),
-                    rs.getString("jenis"),
-                    rs.getString("tipe_jenis"),
-                    rs.getString("merk"),
-                    rs.getInt("jumlah_barang"),
-                    rs.getString("satuan"),
-                    rs.getBigDecimal("harga_satuan")
-                };
-                model.addRow(row);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+        int idCounter = 1;
+        while (rs.next()) {
+            Object[] row = {
+                idCounter++,
+                rs.getDate("tanggal_input"),
+                rs.getString("kode_barang"),
+                rs.getString("nama_barang"),
+                rs.getString("jenis"),
+                rs.getString("tipe_jenis"),
+                rs.getString("merk"),
+                rs.getInt("jumlah_barang"),
+                rs.getString("satuan"),
+                rs.getBigDecimal("harga_satuan")
+            };
+            model.addRow(row);
         }
 
-        return model;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
-    public static void loadBarangToTable(JTable table) {
-        String[] columns = {
-            "Id", "Tanggal Input", "Kode Barang", "Nama Barang",
-            "Jenis", "Tipe Jenis", "Merk",
-            "Jumlah Barang", "Satuan", "Harga Satuan"
-        };
 
-        DefaultTableModel model = new DefaultTableModel(columns, 0);
+    return model;
+}
 
-        String sql = "SELECT id, tanggal_input, kode_barang, nama_barang, jenis, tipe_jenis, " +
-                     "merk, jumlah_barang, satuan, harga_satuan FROM barang";
+public static void loadBarangToTable(JTable table) {
+    String[] columns = {
+        "Id", "Tanggal Input", "Kode Barang", "Nama Barang",
+        "Jenis", "Tipe Jenis", "Merk",
+        "Jumlah Barang", "Satuan", "Harga Satuan"
+    };
 
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+    DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-            while (rs.next()) {
-                Object[] row = {
-                    rs.getInt("id"),
-                    rs.getDate("tanggal_input"),
-                    rs.getString("kode_barang"),
-                    rs.getString("nama_barang"),
-                    rs.getString("jenis"),
-                    rs.getString("tipe_jenis"),
-                    rs.getString("merk"),
-                    rs.getInt("jumlah_barang"),
-                    rs.getString("satuan"),
-                    rs.getBigDecimal("harga_satuan")
-                };
-                model.addRow(row);
-            }
+    String sql = "SELECT tanggal_input, kode_barang, nama_barang, jenis, tipe_jenis, " +
+                 "merk, jumlah_barang, satuan, harga_satuan FROM barang";
 
-            table.setModel(model);
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        int idCounter = 1;
+        while (rs.next()) {
+            Object[] row = {
+                idCounter++,
+                rs.getDate("tanggal_input"),
+                rs.getString("kode_barang"),
+                rs.getString("nama_barang"),
+                rs.getString("jenis"),
+                rs.getString("tipe_jenis"),
+                rs.getString("merk"),
+                rs.getInt("jumlah_barang"),
+                rs.getString("satuan"),
+                rs.getBigDecimal("harga_satuan")
+            };
+            model.addRow(row);
         }
+
+        table.setModel(model);
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+}
+
     private boolean validateInputs() {
     // validate date format
     try {
@@ -158,17 +229,17 @@ DefaultTableModel model;
     }
 
     // validate combo boxes
-    if (cbx_type.getSelectedIndex() <= 0) {
+    if (cbx_type.getSelectedIndex() < 0) {
         JOptionPane.showMessageDialog(this, "Pilih Jenis Barang", "Validation Error", JOptionPane.WARNING_MESSAGE);
         cbx_type.requestFocus();
         return false;
     }
-    if (cbx_typejenis1.getSelectedIndex() <= 0) {
+    if (cbx_typejenis1.getSelectedIndex() < 0) {
         JOptionPane.showMessageDialog(this, "Pilih Tipe Jenis", "Validation Error", JOptionPane.WARNING_MESSAGE);
         cbx_typejenis1.requestFocus();
         return false;
     }
-    if (cbx_merk.getSelectedIndex() <= 0) {
+    if (cbx_merk.getSelectedIndex() < 0) {
         JOptionPane.showMessageDialog(this, "Pilih Merk", "Validation Error", JOptionPane.WARNING_MESSAGE);
         cbx_merk.requestFocus();
         return false;
@@ -178,13 +249,13 @@ DefaultTableModel model;
     try {
         Integer.parseInt(tbx_total.getText().trim());
     } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Jumlah Barang harus angka bulat", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Jumlah Barang harus angka", "Validation Error", JOptionPane.WARNING_MESSAGE);
         tbx_total.requestFocus();
         return false;
     }
 
     // validate satuan
-    if (cbx_pieces.getSelectedIndex() <= 0) {
+    if (cbx_pieces.getSelectedIndex() < 0) {
         JOptionPane.showMessageDialog(this, "Pilih Satuan Barang", "Validation Error", JOptionPane.WARNING_MESSAGE);
         cbx_pieces.requestFocus();
         return false;
@@ -194,7 +265,7 @@ DefaultTableModel model;
     try {
         Double.parseDouble(tbx_priceperitem.getText().trim());
     } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Harga per item harus angka (bisa desimal)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Harga per item harus angka", "Validation Error", JOptionPane.WARNING_MESSAGE);
         tbx_priceperitem.requestFocus();
         return false;
     }
@@ -286,6 +357,9 @@ DefaultTableModel model;
         cbx_merk = new javax.swing.JComboBox<>();
         tbx_typejenis = new javax.swing.JLabel();
         cbx_typejenis1 = new javax.swing.JComboBox<>();
+        btn_cancel = new javax.swing.JButton();
+        btn_update = new javax.swing.JButton();
+        tbx_search = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -313,8 +387,18 @@ DefaultTableModel model;
         jLabel12.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
 
         btn_delete.setText("HAPUS");
+        btn_delete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_deleteActionPerformed(evt);
+            }
+        });
 
         btn_search.setText("CARI");
+        btn_search.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_searchActionPerformed(evt);
+            }
+        });
 
         btn_exit.setText("KELUAR");
         btn_exit.setActionCommand("");
@@ -380,6 +464,22 @@ DefaultTableModel model;
             }
         });
 
+        btn_cancel.setText("CANCEL");
+        btn_cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_cancelActionPerformed(evt);
+            }
+        });
+
+        btn_update.setText("UPDATE");
+        btn_update.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_updateActionPerformed(evt);
+            }
+        });
+
+        tbx_search.setToolTipText("Nama Barang...");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -393,9 +493,7 @@ DefaultTableModel model;
                         .addGap(68, 68, 68)
                         .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(tbx_date, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(681, 681, 681)
-                        .addComponent(btn_exit))
+                        .addComponent(tbx_date, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(68, 68, 68)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -437,15 +535,24 @@ DefaultTableModel model;
                         .addGap(18, 18, 18)
                         .addComponent(tbx_priceperitem, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(113, 113, 113)
-                        .addComponent(btn_input)
-                        .addGap(18, 18, 18)
-                        .addComponent(btn_delete)
-                        .addGap(18, 18, 18)
-                        .addComponent(btn_search))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(47, 47, 47)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1199, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1199, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btn_cancel)
+                                .addGap(18, 18, 18)
+                                .addComponent(btn_input)
+                                .addGap(18, 18, 18)
+                                .addComponent(btn_update)
+                                .addGap(18, 18, 18)
+                                .addComponent(btn_delete)
+                                .addGap(18, 18, 18)
+                                .addComponent(tbx_search, javax.swing.GroupLayout.PREFERRED_SIZE, 415, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btn_search)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btn_exit)
+                                .addGap(239, 239, 239)))))
                 .addContainerGap(29, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -458,9 +565,8 @@ DefaultTableModel model;
                     .addGroup(layout.createSequentialGroup()
                         .addGap(3, 3, 3)
                         .addComponent(jLabel4))
-                    .addComponent(tbx_date, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_exit))
-                .addGap(18, 18, 18)
+                    .addComponent(tbx_date, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(19, 19, 19)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(3, 3, 3)
@@ -508,12 +614,19 @@ DefaultTableModel model;
                         .addGap(3, 3, 3)
                         .addComponent(jLabel12))
                     .addComponent(tbx_priceperitem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(43, 43, 43)
+                .addGap(39, 39, 39)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btn_input)
-                    .addComponent(btn_delete)
-                    .addComponent(btn_search))
-                .addGap(14, 14, 14)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btn_input)
+                        .addComponent(btn_cancel)
+                        .addComponent(btn_update))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btn_delete)
+                        .addComponent(tbx_search, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btn_search)
+                        .addComponent(btn_exit)))
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 277, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(29, Short.MAX_VALUE))
         );
@@ -554,6 +667,11 @@ DefaultTableModel model;
             btn_input.setText("SAVE");
             clearInputs(); // reset all fields
             enableInputs();
+            OperationCode = "";
+            btn_cancel.setEnabled(true);
+            btn_delete.setEnabled(false);
+            btn_search.setEnabled(false);
+            btn_update.setEnabled(false);
         } else {
             if (!validateInputs()) {
         return; // stop kalau invalid
@@ -588,8 +706,13 @@ try (Connection conn = DBContext.getConnection();
 }
             btn_input.setText("INPUT");
             disableInputs();
+            OperationCode = "";
+        btn_delete.setEnabled(false);
+            btn_search.setEnabled(false);
+        ResetState();
         }
         loadBarangToTable(frame);
+        
     }//GEN-LAST:event_btn_inputActionPerformed
 
     private void cbx_typejenis1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbx_typejenis1ActionPerformed
@@ -600,6 +723,110 @@ try (Connection conn = DBContext.getConnection();
             cbx_merk.setSelectedIndex(-1);
         }
     }//GEN-LAST:event_cbx_typejenis1ActionPerformed
+
+    private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
+            int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Apakah kamu yakin ingin menghapus data ini?",
+            "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+    );
+            if(confirm == JOptionPane.NO_OPTION){
+                return;
+            }
+        String sql = "DELETE FROM barang WHERE kode_barang = ?";
+
+    try (Connection conn = DBContext.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+        stmt.setString(1, OperationCode); // assuming OperationCode is your selected kode_barang
+        int affected = stmt.executeUpdate();
+
+        if (affected > 0) {
+            JOptionPane.showMessageDialog(this, "Data berhasil dihapus!");
+            // Optionally refresh your JTable here
+        } else {
+            JOptionPane.showMessageDialog(this, "Data tidak ditemukan.");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat menghapus data: " + e.getMessage());
+    }
+        loadBarangToTable(frame);
+        ResetState();
+    }//GEN-LAST:event_btn_deleteActionPerformed
+
+    private void btn_cancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cancelActionPerformed
+        // THIS SHOULD PUT DIALOG INTO NORMAL STATE NO MATTER WHAT
+        ResetState();
+    }//GEN-LAST:event_btn_cancelActionPerformed
+
+    private void btn_updateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_updateActionPerformed
+        if (!validateInputs()) {
+        return; // stop kalau invalid
+        }
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Apakah kamu yakin ingin mengubah data ini?",
+            "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+    );
+            if(confirm == JOptionPane.NO_OPTION){
+                return;
+            }
+        String sql = "UPDATE barang SET " +
+    "tanggal_input = ?, " +
+    "nama_barang = ?, " +
+    "jenis = ?, " +
+    "tipe_jenis = ?, " +
+    "merk = ?, " +
+    "jumlah_barang = ?, " +
+    "satuan = ?, " +
+    "harga_satuan = ? " +
+    "WHERE kode_barang = ?";   // condition!
+try (Connection conn = DBContext.getConnection();
+     PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+    stmt.setDate(1, java.sql.Date.valueOf(tbx_date.getText())); // yyyy-MM-dd
+    stmt.setString(2, tbx_name.getText());
+    stmt.setString(3, cbx_type.getSelectedItem().toString());
+    stmt.setString(4, cbx_typejenis1.getSelectedItem().toString());
+    stmt.setString(5, cbx_merk.getSelectedItem().toString());
+    stmt.setInt(6, Integer.parseInt(tbx_total.getText()));
+    stmt.setString(7, cbx_pieces.getSelectedItem().toString());
+    stmt.setBigDecimal(8, new java.math.BigDecimal(tbx_priceperitem.getText()));
+
+    // kode_barang goes last (WHERE condition)
+    stmt.setString(9, tbx_code.getText());
+
+    int rows = stmt.executeUpdate();
+
+    if (rows > 0) {
+        JOptionPane.showMessageDialog(this, "Data berhasil diperbarui!");
+    } else {
+        System.out.println("No record found to update.");
+    }
+
+} catch (Exception ex) {
+    ex.printStackTrace();
+}
+        loadBarangToTable(frame);
+ResetState();
+    }//GEN-LAST:event_btn_updateActionPerformed
+
+    private void btn_searchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_searchActionPerformed
+        loadBarangToTable(frame);
+        btn_input.setEnabled(false);
+        btn_cancel.setEnabled(true);
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(frame.getModel());
+frame.setRowSorter(sorter);
+
+String keyword = tbx_search.getText(); // the string to search
+sorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword, 3));
+    }//GEN-LAST:event_btn_searchActionPerformed
 private void clearInputs() {
     tbx_date.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     tbx_code.setText("");
@@ -635,16 +862,36 @@ private void enableInputs() {
     cbx_pieces.setEnabled(enabled);
     tbx_priceperitem.setEnabled(enabled);
 }
+private void ResetState(){
+    clearInputs();
+        disableInputs();
+        btn_cancel.setEnabled(false);
+        btn_delete.setEnabled(false);
+        btn_input.setEnabled(true);
+        btn_input.setText("INPUT");
+        btn_search.setEnabled(true);
+        btn_update.setEnabled(false);
+        tbx_search.setText("");
+        OperationCode = "";
+        loadBarangToTable(frame);
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(frame.getModel());
+frame.setRowSorter(sorter);
+
+String keyword = ""; // turn off filter
+sorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword, 3));
+}
     /**
      * @param args the command line arguments
      */
     
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_cancel;
     private javax.swing.JButton btn_delete;
     private javax.swing.JButton btn_exit;
     private javax.swing.JButton btn_input;
     private javax.swing.JButton btn_search;
+    private javax.swing.JButton btn_update;
     private javax.swing.JComboBox<String> cbx_merk;
     private javax.swing.JComboBox<String> cbx_pieces;
     private javax.swing.JComboBox<String> cbx_type;
@@ -664,6 +911,7 @@ private void enableInputs() {
     private javax.swing.JTextField tbx_date;
     private javax.swing.JTextField tbx_name;
     private javax.swing.JTextField tbx_priceperitem;
+    private javax.swing.JTextField tbx_search;
     private javax.swing.JTextField tbx_total;
     private javax.swing.JLabel tbx_typejenis;
     // End of variables declaration//GEN-END:variables

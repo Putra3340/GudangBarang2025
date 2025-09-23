@@ -4,6 +4,8 @@
  */
 package com.putrartx.gudangbarang2025;
 
+import com.putrartx.gudangbarang2025.Dialog.DataBarangDialog;
+import com.putrartx.gudangbarang2025.Dialog.DataKaryawan;
 import javax.swing.JOptionPane;
 
 /**
@@ -60,6 +62,11 @@ public class MenuForm extends javax.swing.JFrame {
         jMenu4.add(jMenuItem1);
 
         jMenuItem2.setText("Data Karyawan");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
         jMenu4.add(jMenuItem2);
 
         jMenuBar1.add(jMenu4);
@@ -145,6 +152,11 @@ public class MenuForm extends javax.swing.JFrame {
         System.exit(0);
         }
     }//GEN-LAST:event_jMenu2MouseClicked
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        DataKaryawan a = new DataKaryawan(this);
+        a.setVisible(true);
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     
     /**
