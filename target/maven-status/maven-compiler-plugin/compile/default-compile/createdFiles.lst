@@ -1,5 +1,6 @@
 com\putrartx\gudangbarang2025\Dialog\DataKaryawan.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$4.class
+com\putrartx\gudangbarang2025\Dialog\DataKaryawan$4.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$9.class
 com\putrartx\gudangbarang2025\DataBarang$3.class
 com\putrartx\gudangbarang2025\MenuForm$3.class
@@ -7,7 +8,9 @@ com\putrartx\gudangbarang2025\DataBarang$1.class
 com\putrartx\gudangbarang2025\Dialog\DataKaryawan$2.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$2.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$6.class
+com\putrartx\gudangbarang2025\Dialog\DataKaryawan$6.class
 com\putrartx\gudangbarang2025\Dialog\SharedDialog\DeleteDialog$1.class
+com\putrartx\gudangbarang2025\Dialog\DataKaryawan$7.class
 com\putrartx\gudangbarang2025\MenuForm$2.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$8.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$10.class
@@ -18,6 +21,7 @@ com\putrartx\gudangbarang2025\DataBarang$4.class
 com\putrartx\gudangbarang2025\DataBarang.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$5.class
 com\putrartx\gudangbarang2025\MenuForm.class
+com\putrartx\gudangbarang2025\Dialog\DataKaryawan$5.class
 com\putrartx\gudangbarang2025\Dialog\SharedDialog\DeleteDialog.class
 com\putrartx\gudangbarang2025\Dialog\DataKaryawan$1.class
 com\putrartx\gudangbarang2025\MenuForm$4.class
@@ -26,4 +30,5 @@ com\putrartx\gudangbarang2025\DataBarang$5.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog.class
 com\putrartx\gudangbarang2025\Dialog\DataBarangDialog$7.class
 com\putrartx\gudangbarang2025\MenuForm$1.class
+com\putrartx\gudangbarang2025\Dialog\DataKaryawan$3.class
 com\putrartx\gudangbarang2025\DataBarang$2.class
