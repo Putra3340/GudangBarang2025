@@ -6,6 +6,7 @@ package com.putrartx.gudangbarang2025;
 
 import com.putrartx.gudangbarang2025.Dialog.DataBarangDialog;
 import com.putrartx.gudangbarang2025.Dialog.DataKaryawan;
+import com.putrartx.gudangbarang2025.Dialog.TransaksiJualDialog;
 import javax.swing.JOptionPane;
 
 /**
@@ -77,6 +78,11 @@ public class MenuForm extends javax.swing.JFrame {
         jMenu5.add(jMenuItem3);
 
         jMenuItem4.setText("Jual");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu5.add(jMenuItem4);
 
         jMenuBar1.add(jMenu5);
@@ -157,6 +163,11 @@ public class MenuForm extends javax.swing.JFrame {
         DataKaryawan a = new DataKaryawan(this);
         a.setVisible(true);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        TransaksiJualDialog a = new TransaksiJualDialog(this);
+        a.setVisible(true);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     
     /**

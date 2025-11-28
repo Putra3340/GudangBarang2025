@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.sql.*;
+import java.util.Random;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 /**
@@ -100,8 +101,10 @@ frame.addMouseListener(new java.awt.event.MouseAdapter() {
                 
                 // Enable Input
                 enableInputs();
+                
                 // Fill Input
                 tbx_code.setEnabled(false);
+                btn_randomcode.setEnabled(false);
                 tbx_date.setText((frame.getModel().getValueAt(row, 1)).toString());
                 tbx_code.setText((frame.getModel().getValueAt(row, 2)).toString());
                 tbx_name.setText((frame.getModel().getValueAt(row, 3)).toString());
@@ -205,6 +208,88 @@ public static void loadBarangToTable(JTable table) {
 }
 
     private boolean validateInputs() {
+    // validate date format
+    try {
+        LocalDate.parse(tbx_date.getText(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Tanggal harus dalam format yyyy-MM-dd", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        tbx_date.requestFocus();
+        return false;
+    }
+
+    // validate kode_barang (XX-YYYY)
+    if (!tbx_code.getText().matches("^[A-Z]{2}-\\d{4}$")) {
+        JOptionPane.showMessageDialog(this, "Kode Barang harus format XX-YYYY (contoh: AB-1234)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        tbx_code.requestFocus();
+        return false;
+    }
+    
+    // Check if code exists in JTable
+    String code = tbx_code.getText().trim();
+    for (int i = 0; i < frame.getRowCount(); i++) {
+        String existingCode = frame.getValueAt(i, 2).toString(); // column 0 assumed to be 'Kode Barang'
+        if (code.equalsIgnoreCase(existingCode)) {
+            JOptionPane.showMessageDialog(this, 
+                "Kode Barang sudah ada di tabel!", 
+                "Validation Error", 
+                JOptionPane.WARNING_MESSAGE);
+            tbx_code.requestFocus();
+            return false;
+        }
+    }
+
+    // validate nama_barang
+    if (tbx_name.getText().trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Nama Barang harus diisi", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        tbx_name.requestFocus();
+        return false;
+    }
+
+    // validate combo boxes
+    if (cbx_type.getSelectedIndex() < 0) {
+        JOptionPane.showMessageDialog(this, "Pilih Jenis Barang", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        cbx_type.requestFocus();
+        return false;
+    }
+    if (cbx_typejenis1.getSelectedIndex() < 0) {
+        JOptionPane.showMessageDialog(this, "Pilih Tipe Jenis", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        cbx_typejenis1.requestFocus();
+        return false;
+    }
+    if (cbx_merk.getSelectedIndex() < 0) {
+        JOptionPane.showMessageDialog(this, "Pilih Merk", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        cbx_merk.requestFocus();
+        return false;
+    }
+
+    // validate jumlah_barang
+    try {
+        Integer.parseInt(tbx_total.getText().trim());
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Jumlah Barang harus angka", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        tbx_total.requestFocus();
+        return false;
+    }
+
+    // validate satuan
+    if (cbx_pieces.getSelectedIndex() < 0) {
+        JOptionPane.showMessageDialog(this, "Pilih Satuan Barang", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        cbx_pieces.requestFocus();
+        return false;
+    }
+
+    // validate harga per item (decimal allowed)
+    try {
+        Double.parseDouble(tbx_priceperitem.getText().trim());
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Harga per item harus angka", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        tbx_priceperitem.requestFocus();
+        return false;
+    }
+
+    return true; // ✅ semua lolos
+}
+private boolean validateInputsEdit() {
     // validate date format
     try {
         LocalDate.parse(tbx_date.getText(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -360,6 +445,7 @@ public static void loadBarangToTable(JTable table) {
         btn_cancel = new javax.swing.JButton();
         btn_update = new javax.swing.JButton();
         tbx_search = new javax.swing.JTextField();
+        btn_randomcode = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -480,6 +566,13 @@ public static void loadBarangToTable(JTable table) {
 
         tbx_search.setToolTipText("Nama Barang...");
 
+        btn_randomcode.setText("RANDOM");
+        btn_randomcode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_randomcodeActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -498,7 +591,9 @@ public static void loadBarangToTable(JTable table) {
                         .addGap(68, 68, 68)
                         .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(tbx_code, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(tbx_code, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(28, 28, 28)
+                        .addComponent(btn_randomcode))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(68, 68, 68)
                         .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -571,8 +666,10 @@ public static void loadBarangToTable(JTable table) {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(3, 3, 3)
                         .addComponent(jLabel5))
-                    .addComponent(tbx_code, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(tbx_code, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btn_randomcode)))
+                .addGap(17, 17, 17)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(3, 3, 3)
@@ -764,7 +861,7 @@ try (Connection conn = DBContext.getConnection();
     }//GEN-LAST:event_btn_cancelActionPerformed
 
     private void btn_updateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_updateActionPerformed
-        if (!validateInputs()) {
+        if (!validateInputsEdit()) {
         return; // stop kalau invalid
         }
         int confirm = JOptionPane.showConfirmDialog(
@@ -827,6 +924,37 @@ frame.setRowSorter(sorter);
 String keyword = tbx_search.getText(); // the string to search
 sorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword, 3));
     }//GEN-LAST:event_btn_searchActionPerformed
+
+    private void btn_randomcodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_randomcodeActionPerformed
+        Random rand = new Random();
+String result;
+
+do {
+    // Generate two random uppercase letters
+    char first = (char) ('A' + rand.nextInt(26));
+    char second = (char) ('A' + rand.nextInt(26));
+
+    // Generate four random digits
+    int number = rand.nextInt(10000); // 0–9999
+
+    result = String.format("%c%c-%04d", first, second, number);
+
+    // Check uniqueness in JTable
+    boolean exists = false;
+    for (int i = 0; i < frame.getRowCount(); i++) {
+        String existingCode = frame.getValueAt(i, 2).toString();
+        if (result.equalsIgnoreCase(existingCode)) {
+            exists = true;
+            break;
+        }
+    }
+
+    if (!exists) break;  // stop when code is unique
+} while (true);
+
+tbx_code.setText(result);
+
+    }//GEN-LAST:event_btn_randomcodeActionPerformed
 private void clearInputs() {
     tbx_date.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     tbx_code.setText("");
@@ -849,6 +977,7 @@ private void disableInputs() {
     tbx_total.setEnabled(enabled);
     cbx_pieces.setEnabled(enabled);
     tbx_priceperitem.setEnabled(enabled);
+    btn_randomcode.setEnabled(enabled);
 }
 private void enableInputs() {
     boolean enabled = true;
@@ -861,6 +990,7 @@ private void enableInputs() {
     tbx_total.setEnabled(enabled);
     cbx_pieces.setEnabled(enabled);
     tbx_priceperitem.setEnabled(enabled);
+    btn_randomcode.setEnabled(enabled);
 }
 private void ResetState(){
     clearInputs();
@@ -890,6 +1020,7 @@ sorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword, 3));
     private javax.swing.JButton btn_delete;
     private javax.swing.JButton btn_exit;
     private javax.swing.JButton btn_input;
+    private javax.swing.JButton btn_randomcode;
     private javax.swing.JButton btn_search;
     private javax.swing.JButton btn_update;
     private javax.swing.JComboBox<String> cbx_merk;

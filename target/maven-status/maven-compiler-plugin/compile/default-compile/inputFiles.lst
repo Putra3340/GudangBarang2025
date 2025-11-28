@@ -1,6 +1,10 @@
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\models\TransaksiTableModel.java
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\MenuForm.java
 D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\DataBarang.java
 D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\DBContext.java
-D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\DataBarangDialog.java
-D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\DataKaryawan.java
 D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\SharedDialog\DeleteDialog.java
-D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\MenuForm.java
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\DataKaryawan.java
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\TransaksiBeliDialog.java
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\TransaksiJualDialog.java
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\Dialog\DataBarangDialog.java
+D:\Repo\GudangBarang2025\src\main\java\com\putrartx\gudangbarang2025\models\TransaksiModel.java
